@@ -81,7 +81,7 @@
 using namespace cv;
 
 // Global variables
-HWND quantBox;
+HWND quantBox = NULL;
 HWND brightnessBox;
 HWND contrastBox;
 HWND zoomOut_sx;
@@ -222,7 +222,7 @@ void printHistogram(float hist[256], char *window_name)
     putText(histogram, "128", Point(133, 270), FONT_HERSHEY_COMPLEX_SMALL, 0.8, CV_RGB(0, 0, 0), 0);
     putText(histogram, "255", Point(260, 270), FONT_HERSHEY_COMPLEX_SMALL, 0.8, CV_RGB(0, 0, 0), 0);
     cv::imshow(window_name, histogram);
-    cv::waitKey(1);
+    cv::waitKey(0);
 }
 
 void histogram(const Mat src, char *window_name)
@@ -407,14 +407,18 @@ void histogramMatch(Mat dest, const Mat src, const Mat target)
     for (int i = 0; i < 256; i++) {
         hist_match[i] = findTargetShadeLevel(hist_target_cum, i);
     }
-    // create dest img
-    for (int i = 0; i < graySrc.rows; i++) {
-        for (int j = 0; j < graySrc.cols; j++) {
-            for (int k = 0; k < 3; k++) {
-                dest.at<Vec3b>(i, j)[k] = hist_match[graySrc.at<Vec3b>(i, j)[k]];
+    // check if same dimensions
+    if (graySrc.cols == dest.cols && graySrc.rows == dest.rows) {
+        // create dest img
+        for (int i = 0; i < graySrc.rows; i++) {
+            for (int j = 0; j < graySrc.cols; j++) {
+                for (int k = 0; k < 3; k++) {
+                    dest.at<Vec3b>(i, j)[k] = hist_match[graySrc.at<Vec3b>(i, j)[k]];
+                }
             }
         }
     }
+    // else undefined
 }
 
 void zoomOut(Mat dest, const Mat src, const int sx, const int sy)
@@ -615,6 +619,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
             histogram(img2, "HISTOGRAM DEST");
             cv::moveWindow("HISTOGRAM SRC", posx + img.cols + 20, posy);
             cv::moveWindow("HISTOGRAM DEST", posx + img.cols + 20, posy + 330);
+            cv::waitKey(0);
             break;
         }
         else if (openFlag == OPEN_TARGET) {
@@ -623,6 +628,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
             histogram(targetImg, "HISTOGRAM TARGET");
             cv::moveWindow("TARGET", posx - img.cols - 10, posy + img.rows + 20);
             cv::moveWindow("HISTOGRAM TARGET", posx - img.cols + targetImg.cols, posy + img.rows + 20);
+            cv::waitKey(0);
         }
         break;
     case IMG_COPY: {
@@ -631,6 +637,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         imgcpy(img2, img);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_H_FLIP: {
@@ -638,6 +645,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         hflip(temp_img, img2);
         imgcpy(img2, temp_img);
         cv::imshow("DEST", img2);
+        cv::waitKey(0);
         break;
     }
     case IMG_V_FLIP: {
@@ -645,21 +653,25 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         vflip(temp_img, img2);
         imgcpy(img2, temp_img);
         cv::imshow("DEST", img2);
+        cv::waitKey(0);
         break;
     }
     case IMG_H_MIRROR:
         hflip(img2, img2);
         cv::imshow("DEST", img2);
+        cv::waitKey(0);
         break;
     case IMG_V_MIRROR:
         vflip(img2, img2);
         cv::imshow("DEST", img2);
+        cv::waitKey(0);
         break;
     case IMG_LUMINANCE: {
         Mat temp_img(img2.size(), img2.type());
         grayscale(temp_img, img2);
         imgcpy(img2, temp_img);
         cv::imshow("DEST", img2);
+        cv::waitKey(0);
         break;
     }
     case IMG_QUANTIZATION: {
@@ -674,6 +686,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         quant(img2, img, numTones);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_BRIGHTNESS: {
@@ -686,6 +699,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         brightness(img2, img2, numBrightness);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_CONTRAST: {
@@ -698,22 +712,26 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         contrast(img2, img2, numContrast);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_NEGATIVE:
         negative(img2, img2);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     case IMG_HISTOGRAM_EQ:
         histogramEq(img2, img2);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     case IMG_HISTOGRAM_MATCH:
         histogramMatch(img2, img, targetImg);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     case IMG_ZOOM_OUT: {
         wchar_t ws_sx[BUFFER_SIZE] = { 0 };
@@ -732,20 +750,24 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         zoomOut(img2, img2, num_sx, num_sy);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_ZOOM_IN:
         zoomIn(img2, img2);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     case IMG_ROTATE_CCW:
         rotateImg(img2, img2, ROT_CCW);
         cv::imshow("DEST", img2);
+        cv::waitKey(0);
         break;
     case IMG_ROTATE_CW:
         rotateImg(img2, img2, ROT_CW);
         cv::imshow("DEST", img2);
+        cv::waitKey(0);
         break;
     case IMG_CONV_GAUSS: {
         float kernel[3][3] = { { 0.0625, 0.125, 0.0625 },
@@ -754,6 +776,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         convolution(img2, img2, kernel, 1);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_CONV_LAPLACE: {
@@ -766,6 +789,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         convolution(img2, img2, kernel, 1);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_CONV_GEN_HIGH: {
@@ -778,6 +802,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         convolution(img2, img2, kernel, 1);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_CONV_PRE_HX: {
@@ -790,6 +815,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         convolution(img2, img2, kernel, 0);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_CONV_PRE_HY: {
@@ -802,6 +828,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         convolution(img2, img2, kernel, 0);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_CONV_SOB_HX: {
@@ -814,6 +841,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         convolution(img2, img2, kernel, 0);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_CONV_SOB_HY: {
@@ -826,6 +854,7 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         convolution(img2, img2, kernel, 0);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     case IMG_CONV_CUSTOM: {
@@ -847,36 +876,39 @@ void imgOps(unsigned char operation, unsigned char openFlag)
         convolution(img2, img2, kernel, 0);
         cv::imshow("DEST", img2);
         histogram(img2, "HISTOGRAM DEST");
+        cv::waitKey(0);
         break;
     }
     }
-    cv::waitKey(20);
 }
 
 int openFile(HWND hWnd, unsigned char openFlag)
 {
     OPENFILENAME ofn;
-
-    wchar_t LfileName[FILENAME_MAX * 2] = { 0 }; // wide char
-
     ZeroMemory(&ofn, sizeof(OPENFILENAME));
 
     ofn.lStructSize = sizeof(OPENFILENAME);
     ofn.hwndOwner = hWnd;
-    ofn.lpstrFile = LfileName;
+    ofn.lpstrFile = filename;
     ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = FILENAME_MAX * 2;
-    ofn.lpstrFilter = L"Image Files (.jpg, .png, .bmp)\0*.JPG;*.PNG*;.BMP\0";
+    ofn.lpstrFilter = "Image Files (.jpg, .png, .bmp)\0*.JPG;*.PNG*;.BMP\0";
     ofn.nFilterIndex = 1;
     ofn.Flags = OFN_FILEMUSTEXIST;
 
     GetOpenFileName(&ofn);
-    std::wcstombs(filename, LfileName, wcslen(LfileName) + 1);
+
     if (!filename[0]) {
         return 0;
     }
+    
+    FILE *file;
+    if (!(file = fopen(filename, "r"))) {
+        MessageBox(NULL, "File not found!", "ERROR", MB_OK);
+        return -1;
+    }
+    fclose(file);
 
-    imgOps(IMG_OPEN_FILE, openFlag);
     return 1;
 }
 
@@ -917,22 +949,23 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
     case WM_COMMAND:
         switch (wp) {
         case PROC_INFO_MENU:
-            MessageBox(NULL, L"", L"Information", MB_OK);
+            MessageBox(NULL, "", "Information", MB_OK);
             break;
         case PROC_EXIT_MENU:
             val = MessageBoxW(NULL, L"Encerrar a Execucao?", L"", MB_YESNO | MB_ICONEXCLAMATION);
             if (val == IDYES) {
-                DestroyWindow(hWnd);
+                exit(0);
             }
             break;
         case PROC_OPEN_FILE:
             if (openFile(hWnd, OPEN_SRC)) {
                 ini = 1;
+                imgOps(IMG_OPEN_FILE, OPEN_SRC);
             }
             break;
         case PROC_COPY_IMG:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_COPY, NULL);
@@ -940,7 +973,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_H_FLIP:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_H_FLIP, NULL);
@@ -948,7 +981,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_V_FLIP:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_V_FLIP, NULL);
@@ -956,7 +989,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_H_MIRROR:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_H_MIRROR, NULL);
@@ -964,7 +997,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_V_MIRROR:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_V_MIRROR, NULL);
@@ -972,7 +1005,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_LUMINANCE:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_LUMINANCE, NULL);
@@ -980,7 +1013,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_QUANTIZATION:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_QUANTIZATION, NULL);
@@ -988,17 +1021,17 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_SAVE_FILE:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 if (saveFile(hWnd)) {
-                    MessageBox(NULL, L"Imagem destino salva com sucesso!", L"", MB_OK);
+                    MessageBox(NULL, "Imagem destino salva com sucesso!", "", MB_OK);
                 }
             }
             break;
         case PROC_BRIGHTNESS:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_BRIGHTNESS, NULL);
@@ -1006,7 +1039,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONTRAST:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONTRAST, NULL);
@@ -1014,7 +1047,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_NEGATIVE:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_NEGATIVE, NULL);
@@ -1022,7 +1055,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_HISTOGRAM_EQ:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_HISTOGRAM_EQ, NULL);
@@ -1031,14 +1064,15 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
         case PROC_OPEN_TARGET:
             if (openFile(hWnd, OPEN_TARGET)) {
                 t_ini = 1;
+                imgOps(IMG_OPEN_FILE, OPEN_TARGET);
             }
             break;
         case PROC_HISTOGRAM_MATCH:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else if (!t_ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem alvo!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem alvo!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_HISTOGRAM_MATCH, NULL);
@@ -1046,7 +1080,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_ZOOM_OUT:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_ZOOM_OUT, NULL);
@@ -1054,7 +1088,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_ZOOM_IN:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_ZOOM_IN, NULL);
@@ -1062,7 +1096,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_ROTATE_CCW:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_ROTATE_CCW, NULL);
@@ -1070,7 +1104,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_ROTATE_CW:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_ROTATE_CW, NULL);
@@ -1078,7 +1112,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONV_GAUSS:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONV_GAUSS, NULL);
@@ -1086,7 +1120,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONV_LAPLACE:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONV_LAPLACE, NULL);
@@ -1094,7 +1128,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONV_GEN_HIGH:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONV_GEN_HIGH, NULL);
@@ -1102,7 +1136,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONV_PRE_HX:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONV_PRE_HX, NULL);
@@ -1110,7 +1144,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONV_PRE_HY:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONV_PRE_HY, NULL);
@@ -1118,7 +1152,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONV_SOB_HX:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONV_SOB_HX, NULL);
@@ -1126,7 +1160,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONV_SOB_HY:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONV_SOB_HY, NULL);
@@ -1134,7 +1168,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case PROC_CONV_CUSTOM:
             if (!ini) {
-                MessageBox(NULL, L"Primeiro carregue uma imagem de origem!", L"ERRO", MB_OK);
+                MessageBox(NULL, "Primeiro carregue uma imagem de origem!", "ERRO", MB_OK);
             }
             else {
                 imgOps(IMG_CONV_CUSTOM, NULL);
@@ -1143,7 +1177,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
         }
 
     case WM_DESTROY:
-        PostQuitMessage(0);
+        //PostQuitMessage(0);
         break;
     default:
         return DefWindowProcW(hWnd, msg, wp, lp);
@@ -1602,10 +1636,10 @@ void AddMenus(HWND hWnd, HMENU hMenu)
     hMenu = CreateMenu();
     HMENU hFileMenu = CreateMenu();
 
-    AppendMenu(hFileMenu, MF_STRING, PROC_EXIT_MENU, L"Exit");
+    AppendMenu(hFileMenu, MF_STRING, PROC_EXIT_MENU, "Exit");
 
-    AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hFileMenu, L"File");
-    AppendMenu(hMenu, MF_STRING, NULL, L"Info");
+    AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hFileMenu, "File");
+    AppendMenu(hMenu, MF_STRING, NULL, "Info");
 
     SetMenu(hWnd, hMenu);
 }
@@ -1644,6 +1678,7 @@ int main(void)
     }
 
     // create menu and controls
+
     HMENU hMenu = { 0 };
     AddMenus(hWnd, hMenu);
     AddControls(hWnd);
